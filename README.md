@@ -27,6 +27,13 @@ So the baseline ships in two halves:
 - **Recovery you have tested.** Scheduled backups across separate physical disks, plus a written restore procedure that has actually been run. An untested backup is a hypothesis. See [`docs/backups.md`](docs/backups.md).
 - **Documented failure modes.** The traps that cost me real time, written down so they cost me less next time. See [`docs/failure-modes.md`](docs/failure-modes.md).
 
+## Incident write-ups
+
+Two things that went wrong, what the symptoms looked like, and what I changed afterwards.
+
+- [**A VPN exit node eating 40% of my download**](writeups/exit-node-bandwidth.md) - 491 Mbps on an 800/40 line. The cause was two layers above the NIC I spent two hours tuning, and `tracert` found it in four seconds.
+- [**Access review: my VPN was allow-all**](writeups/vpn-access-review.md) - what a default policy granted a guest account, and why tightening it broke DNS everywhere the moment I saved it.
+
 ## Layout
 
 ```
