@@ -1,0 +1,19 @@
+# Everything here runs on Linux hosts, so the working tree must use LF, not
+# just the stored blobs.
+#
+# Without this, core.autocrlf=true rewrites the scripts with CRLF on checkout.
+# The shebang then reads "#!/usr/bin/env bash\r" and the kernel looks for an
+# interpreter literally named "bash\r":
+#
+#     bad interpreter: No such file or directory
+#
+# It only breaks after a clone on Windows, so it survives local testing and
+# fails for whoever clones it next.
+
+* text=auto eol=lf
+
+*.sh      text eol=lf
+*.md      text eol=lf
+*.conf    text eol=lf
+*.local   text eol=lf
+*.hujson  text eol=lf
