@@ -1,0 +1,47 @@
+// Tailscale access policy.
+//
+// This replaced the default, which is:
+//   { "src": ["*"], "dst": ["*"], "ip": ["*"] }
+//
+// Allow-all is fine while every node belongs to you. It stops being fine
+// the moment a second identity joins, because "every node reachable from
+// every node" now includes theirs.
+{
+  "groups": {
+    "group:owner":  ["owner@example.com"],
+    "group:family": ["guest@example.com"],
+  },
+
+  "tagOwners": {
+    "tag:infra": ["group:owner"],
+    "tag:exit":  ["group:owner"],
+  },
+
+  "grants": [
+    // autogroup:self is what keeps the homelab working: devices owned by the
+    // same user as the source. The guest account owns none of them, so it
+    // matches nothing here and is locked out without any explicit deny rule.
+    { "src": ["group:owner"], "dst": ["autogroup:self"], "ip": ["*"] },
+
+    // Tagged infrastructure leaves autogroup:self, so anything it serves must
+    // be listed explicitly. Enumerate the ports BEFORE tagging a node, or you
+    // will cut off a service you forgot was there.
+    { "src": ["group:owner"], "dst": ["tag:infra"], "ip": ["22", "443", "445"] },
+
+    { "src": ["group:owner"], "dst": ["autogroup:internet"], "ip": ["*"] },
+
+    // autogroup:internet deliberately EXCLUDES RFC1918, so an exit-node user
+    // cannot reach the exit node's LAN. If your tailnet DNS server is a
+    // private address, it needs its own /32 grant or name resolution breaks
+    // for every off-LAN device. This is the non-obvious one.
+    { "src": ["group:owner"], "dst": ["192.0.2.53/32"], "ip": ["53"] },
+
+    // Guest: internet egress and DNS filtering only. No lab access.
+    { "src": ["group:family"], "dst": ["autogroup:internet"], "ip": ["*"] },
+    { "src": ["group:family"], "dst": ["192.0.2.53/32"], "ip": ["53"] },
+  ],
+
+  // Tailscale SSH off. It was enabled with no ssh block, which granted
+  // nothing while looking like a live feature.
+  "ssh": [],
+}

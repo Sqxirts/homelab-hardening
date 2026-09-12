@@ -1,0 +1,20 @@
+# Never let a real key or a real policy dump into this repo.
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+!*.pub.example
+authorized_keys
+known_hosts
+.env
+.env.*
+!.env.example
+*.log
+*.bak
+*.swp
+.DS_Store
+
+# Live exports. This repo holds the sanitized baseline, not machine state.
+live/
+inventory/
+*.hujson.live

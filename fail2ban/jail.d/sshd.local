@@ -1,0 +1,18 @@
+# /etc/fail2ban/jail.d/sshd.local
+
+[sshd]
+enabled  = true
+port     = 2222
+backend  = systemd
+maxretry = 3
+findtime = 10m
+bantime  = 1h
+
+# A host that comes back after a ban earns a longer one.
+bantime.increment = true
+bantime.factor    = 2
+bantime.maxtime   = 1w
+
+# Add your own management ranges here so a key-rotation test does not ban
+# you from your own host. This is not theoretical - see docs/failure-modes.md.
+ignoreip = 127.0.0.1/8 ::1
