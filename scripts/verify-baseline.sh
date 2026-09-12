@@ -107,8 +107,10 @@ else
     bad "accounts with an empty password: $(echo "$empty_pw" | tr '\n' ' ')"
 fi
 
-if [ -s /root/.ssh/authorized_keys ]; then
-    count="$(grep -cvE '^[[:space:]]*(#|$)' /root/.ssh/authorized_keys)"
+root_keys=0
+[ -s /root/.ssh/authorized_keys ] &&     root_keys="$(grep -cvE '^[[:space:]]*(#|$)' /root/.ssh/authorized_keys 2>/dev/null || echo 0)"
+if [ "$root_keys" -gt 0 ]; then
+    count="$root_keys"
     if [ "$(sshd_opt permitrootlogin)" = "no" ]; then
         note "root has $count authorized key(s), inert while PermitRootLogin=no - stale entries worth removing"
     else
@@ -150,8 +152,8 @@ elif ! systemctl is-active --quiet fail2ban 2>/dev/null; then
 else
     ok "fail2ban is running"
     if fail2ban-client status 2>/dev/null | grep -q 'sshd'; then
-        banned="$(fail2ban-client status sshd 2>/dev/null | awk -F: '/Currently banned/ {gsub(/ /,"",$2); print $2}')"
-        total="$(fail2ban-client status sshd 2>/dev/null | awk -F: '/Total banned/ {gsub(/ /,"",$2); print $2}')"
+        banned="$(fail2ban-client status sshd 2>/dev/null | awk -F: '/Currently banned/ {gsub(/[[:space:]]/,"",$2); print $2}')"
+        total="$(fail2ban-client status sshd 2>/dev/null | awk -F: '/Total banned/ {gsub(/[[:space:]]/,"",$2); print $2}')"
         ok "sshd jail active (currently banned: ${banned:-0}, total: ${total:-0})"
     else
         bad "fail2ban is running but the sshd jail is not active"
