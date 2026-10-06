@@ -29,6 +29,22 @@ fail2ban-client set sshd unbanip <your-ip>
 
 `ufw default deny incoming` followed by `ufw enable` ends your session, on a container whose console may need the hypervisor's web UI to reach. Always allow the SSH port first. `harden-container.sh` orders it that way deliberately.
 
+## A green firewall that does not cover your containers
+
+"Docker bypasses ufw" is half true, and the wrong half bites. It depends on how each port is published:
+
+| Publish style | ufw filters it? |
+|---|---|
+| `-p 0.0.0.0:27015:27015/udp` (or no address) | **No.** Docker's DNAT in `PREROUTING` sends it to the container before ufw's `INPUT` rules ever see it. |
+| `-p 192.0.2.53:8212:8212` (a specific host IP) | **Yes.** It traverses `INPUT` and needs an allow rule. |
+| `network_mode: host` | **Yes.** Every port is an ordinary host socket. |
+
+Two failures from one fact. A port published to `0.0.0.0` is open to everything no matter what `ufw status` says. And a port published to the host's own IP goes dark the moment ufw is enabled, which is how REST and RCON vanished from the dashboard here. Both look fine in `ufw status`.
+
+```bash
+docker ps --format '{{.Names}}  {{.Ports}}'   # 0.0.0.0: bypasses ufw; a specific IP is filtered
+```
+
 ## Patching a file the package manager owns
 
 Any fix that edits a file belonging to a package is reverted by that package's next upgrade. This is not the patch failing, it is the patch working exactly as long as it can.
